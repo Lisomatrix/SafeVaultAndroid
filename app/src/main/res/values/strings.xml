@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">SafeVault</string>
+    <string name="account_id">Account ID</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log In</string>
+    <string name="register">Register</string>
+    <string name="repeat_password">Repeat Password</string>
+    <string name="welcome_text_one">In order to keep you secure we don\'t know anything about you. And it must continue that way!</string>
+    <string name="welcome_title">Welcome</string>
+    <string name="welcome_text_two">We will give you an ID in order to access your account. You must store it and don\'t share with anyone!</string>
+    <string name="welcome_text_three">If you lose your account ID or forget the password we will not be able to assist you! If were able to do so, then we would have access to your account.</string>
+    <string name="welcome_warning_text">Warning</string>
+    <string name="welcome_text_four">In case you forgot your password don\'t attempt to brute force, after 3 attempts your data will be deleted.</string>
+    <string name="welcome_accept">Accept</string>
+    <string name="keep_it_safe">Keep it safe</string>
+    <string name="account_title">This is your account ID</string>
+    <string name="welcome_continue">Continue</string>
+    <string name="login_error_message">Account ID or password are incorrect</string>
+    <string name="clipboard_copy">Copied to your clipboard</string>
+    <string name="search_hint">Search...</string>
+</resources>

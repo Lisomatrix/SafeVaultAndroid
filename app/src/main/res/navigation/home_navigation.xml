@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_navigation"
+    app:startDestination="@id/myFilesFragment">
+    <fragment
+        android:id="@+id/myFilesFragment"
+        android:name="pt.lisomatrix.safevault.ui.home.options.myfiles.MyFilesFragment"
+        android:label="MyFilesFragment" />
+    <fragment
+        android:id="@+id/sharedFilesFragment"
+        android:name="pt.lisomatrix.safevault.ui.home.options.sharedfiles.SharedFilesFragment"
+        android:label="shared_files_fragment"
+        tools:layout="@layout/shared_files_fragment" />
+</navigation>

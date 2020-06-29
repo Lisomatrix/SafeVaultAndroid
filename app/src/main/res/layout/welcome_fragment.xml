@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:attrs="http://schemas.android.com/apk/res-auto">
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_gradient"
+    tools:context=".ui.welcome.WelcomeFragment">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        attrs:layout_constraintEnd_toEndOf="parent"
+        attrs:layout_constraintStart_toStartOf="parent">
+
+
+    </androidx.viewpager.widget.ViewPager>
+
+
+    <ImageButton
+        android:id="@+id/backArrowBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/arrow_left"
+        attrs:layout_constraintBottom_toBottomOf="@+id/pager"
+        attrs:layout_constraintStart_toStartOf="parent"
+        attrs:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/arrow_left" />
+
+    <ImageButton
+        android:id="@+id/nextArrowBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/arrow_right"
+        attrs:layout_constraintBottom_toBottomOf="@+id/pager"
+        attrs:layout_constraintEnd_toEndOf="parent"
+        attrs:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/arrow_right" />
+
+    <com.rd.PageIndicatorView
+        android:id="@+id/pageIndicatorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="24dp"
+        attrs:layout_constraintBottom_toBottomOf="parent"
+        attrs:layout_constraintEnd_toEndOf="parent"
+        attrs:layout_constraintStart_toStartOf="parent"
+        attrs:piv_animationType="fill"
+        attrs:piv_dynamicCount="true"
+        attrs:piv_interactiveAnimation="true"
+        attrs:piv_padding="12dp"
+        attrs:piv_radius="8dp"
+        attrs:piv_selectedColor="@android:color/white"
+        attrs:piv_strokeWidth="1dp"
+        attrs:piv_unselectedColor="@android:color/white"
+        attrs:piv_viewPager="@id/pager" />
+
+    <Button
+        android:id="@+id/acceptTxt"
+        android:background="@android:color/transparent"
+        android:text="@string/welcome_accept"
+        android:clickable="true"
+        android:textSize="30sp"
+        style="@style/WelcomeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        attrs:layout_constraintBottom_toTopOf="@+id/pageIndicatorView"
+        attrs:layout_constraintEnd_toEndOf="parent"
+        attrs:layout_constraintStart_toStartOf="parent"
+        android:focusable="true" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
+</layout>
