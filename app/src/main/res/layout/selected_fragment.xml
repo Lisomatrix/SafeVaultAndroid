@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.component.SelectComponent.SelectedFragment">
+
+    <ImageButton
+        android:id="@+id/cancelBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="6dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/arrow_left"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/back_icon" />
+
+    <TextView
+        android:id="@+id/selectedNumberTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3 Selected"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:layout_marginLeft="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cancelBtn"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/deleteBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_delete_black_18dp"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/shareBtn"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/baseline_delete_black_18dp" />
+
+    <ImageButton
+        android:id="@+id/shareBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:background="@android:color/transparent"
+        android:src="?attr/actionModeShareDrawable"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="?attr/actionModeShareDrawable" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

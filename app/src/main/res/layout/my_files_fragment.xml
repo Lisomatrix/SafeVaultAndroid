@@ -35,62 +35,13 @@
                     android:layout_height="?attr/actionBarSize"
                     app:layout_collapseMode="pin">
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp">
-
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="0dp"
-                            android:layout_height="35dp"
-                            android:layout_marginEnd="60dp"
-                            android:background="@drawable/search_input_background"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/addBtn"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <EditText
-                                android:id="@+id/searchTxt"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:background="@drawable/search_input"
-                                android:hint="@string/search_hint"
-                                android:lines="1"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toStartOf="@id/searchBtn"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent" />
-
-                            <ImageButton
-                                android:id="@+id/searchBtn"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:layout_marginEnd="4dp"
-                                android:background="@android:color/transparent"
-                                android:src="?android:attr/actionModeWebSearchDrawable"
-                                android:tint="@android:color/black"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintTop_toTopOf="parent" />
-
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-                        <ImageButton
-                            android:id="@+id/addBtn"
-                            android:layout_width="20dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="24dp"
-                            android:background="@android:color/transparent"
-                            android:src="@drawable/add_icon"
-                            android:tint="@android:color/white"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                <FrameLayout
+                    android:id="@+id/toolBarFragmentContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"/>
 
                 </androidx.appcompat.widget.Toolbar>
+
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -8,7 +8,7 @@ import pt.lisomatrix.safevault.model.VaultFile
 interface VaultFileDao {
 
     @Insert
-    fun insert(file: VaultFile)
+    fun insert(file: VaultFile): Long
 
     @Delete
     fun delete(file: VaultFile)
@@ -20,5 +20,8 @@ interface VaultFileDao {
     fun get(id: Long): LiveData<VaultFile>
 
     @Query("SELECT * FROM vault_file_table")
-    fun getAll(): LiveData<VaultFile>
+    fun getAll(): LiveData<List<VaultFile>>
+
+    @Query("delete from vault_file_table where id in (:idList)")
+    fun deleteByIds(idList: LongArray)
 }

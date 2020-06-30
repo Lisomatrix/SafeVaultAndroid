@@ -42,7 +42,7 @@
         android:text="Contract Photos"
         android:textColor="@android:color/black"
         android:textSize="20sp"
-        app:layout_constraintEnd_toStartOf="@+id/imageView3"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/imageView2"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -53,19 +53,10 @@
         android:layout_marginTop="2dp"
         android:text="22 KBs"
         android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@+id/imageView3"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/fileNameTxt"
         app:layout_constraintTop_toBottomOf="@id/fileNameTxt" />
 
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="22dp"
-        android:layout_height="10dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/menu"
-        tools:srcCompat="@drawable/menu" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
