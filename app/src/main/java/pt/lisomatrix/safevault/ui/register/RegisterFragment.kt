@@ -1,6 +1,8 @@
 package pt.lisomatrix.safevault.ui.register
 
+import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +12,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 import pt.lisomatrix.safevault.R
+import pt.lisomatrix.safevault.SafeVaultApplication.Companion.APPLICATION_NAME
 import pt.lisomatrix.safevault.databinding.RegisterFragmentBinding
 import pt.lisomatrix.safevault.extensions.hideKeyboard
+import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_KEY_GENERATED
 
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
@@ -45,8 +48,16 @@ class RegisterFragment : Fragment() {
         // On register complete
         viewModel.onRegister.observe(this.viewLifecycleOwner, Observer { isRegistered ->
             if (isRegistered) {
+                // Set to reset encryption key
+                val sharedPref = requireContext()
+                    .getSharedPreferences(APPLICATION_NAME, Context.MODE_PRIVATE)
+                val edit = sharedPref.edit()
+                edit.putBoolean(IS_KEY_GENERATED, false)
+                edit.commit()
+
                 // Navigate to welcome
-                findNavController().navigate(RegisterFragmentDirections.actionRegisterFragmentToWelcomeFragment())
+                findNavController()
+                    .navigate(RegisterFragmentDirections.actionRegisterFragmentToWelcomeFragment())
             }
         })
     }

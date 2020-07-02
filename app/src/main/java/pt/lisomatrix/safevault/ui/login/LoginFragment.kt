@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.databinding.LoginFragmentBinding
 import pt.lisomatrix.safevault.extensions.hideKeyboard
+import pt.lisomatrix.safevault.ui.account.AccountFragmentDirections
 import pt.lisomatrix.safevault.ui.home.HomeActivity
 
 @AndroidEntryPoint
@@ -56,10 +57,9 @@ class LoginFragment : Fragment() {
         viewModel.onLogin.observe(this.viewLifecycleOwner, Observer { isLoggedIn ->
             if (isLoggedIn) {
                 // Navigate to home
-                val intent = Intent(requireContext(), HomeActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                startActivity(intent)
-                activity?.finish()
+                findNavController()
+                    .navigate(LoginFragmentDirections.actionLoginFragmentToHomeActivity())
+                requireActivity().finish()
             } else {
                 // Show error message
                 // I don't show any attempts warning so the files are deleted

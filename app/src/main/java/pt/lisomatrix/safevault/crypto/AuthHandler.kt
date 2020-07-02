@@ -1,15 +1,19 @@
 package pt.lisomatrix.safevault.crypto
 
+import android.app.ActivityManager
 import android.content.Context
+import android.content.Context.ACTIVITY_SERVICE
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import pt.lisomatrix.safevault.SafeVaultApplication
 import pt.lisomatrix.safevault.database.SafeVaultDatabase
 import pt.lisomatrix.safevault.database.dao.AccountDao
 import pt.lisomatrix.safevault.model.Account
-import java.lang.Exception
+import java.io.File
 import java.security.MessageDigest
 import java.util.*
+
 
 /**
  * Class responsible for authenticating and registering the user
@@ -50,7 +54,27 @@ class AuthHandler (context: Context) {
             // Create account
             val account = Account(accountID, encodedHash.contentToString())
 
-            // TODO: DELETE OLD FILES PROBABLY WITH A WORKER
+
+            // Delete all files
+            clearApplicationData()
+            /*
+
+            THIS IS THE BEST SOLUTION BUT IT CLOSES THE APP AND IT IS BAD UX
+
+            val activityManager = (context.getSystemService(ACTIVITY_SERVICE) as ActivityManager)
+
+            if (activityManager.clearApplicationUserData()) {
+                Log.d("DELETE", "Application data deleted")
+            } else {
+                Log.d("DELETE", "Application data failed deleted")
+            }*/
+
+            // Clear shared preferences
+            context.getSharedPreferences(SafeVaultApplication.APPLICATION_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit()
+
             // Delete the most data possible
             nukeData()
 
@@ -66,6 +90,33 @@ class AuthHandler (context: Context) {
 
             return@withContext accountID
         }
+    }
+
+    private fun clearApplicationData() {
+
+        val cache: File = context.cacheDir
+        val appDir = File(cache.parent)
+        if (appDir.exists()) {
+            val children: Array<String> = appDir.list()
+            for (s in children) {
+                if (s != "lib") {
+                    deleteDir(File(appDir, s))
+                }
+            }
+        }
+    }
+
+    private fun deleteDir(dir: File?): Boolean {
+        if (dir != null && dir.isDirectory) {
+            val children = dir.list()
+            for (i in children.indices) {
+                val success = deleteDir(File(dir, children[i]))
+                if (!success) {
+                    return false
+                }
+            }
+        }
+        return dir!!.delete()
     }
 
     /**

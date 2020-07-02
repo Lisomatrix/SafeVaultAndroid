@@ -56,4 +56,19 @@
         <item name="android:textSize">20sp</item>
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="MyFilesListItem">
+        <item name="android:background">@android:color/white</item>
+        <item name="android:elevation">8dp</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowColor">#4D000000</item>
+
+    </style>
+
+    <style name="MyFilesListItemFocus">
+        <item name="android:elevation">8dp</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowColor">#4D000000</item>
+        <item name="android:background">@android:color/darker_gray</item>
+    </style>
 </resources>

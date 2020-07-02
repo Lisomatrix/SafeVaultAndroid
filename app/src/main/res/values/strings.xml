@@ -18,4 +18,5 @@
     <string name="login_error_message">Account ID or password are incorrect</string>
     <string name="clipboard_copy">Copied to your clipboard</string>
     <string name="search_hint">Search...</string>
+    <string name="permissions">READ_WRITE_PERMISSIONS</string>
 </resources>

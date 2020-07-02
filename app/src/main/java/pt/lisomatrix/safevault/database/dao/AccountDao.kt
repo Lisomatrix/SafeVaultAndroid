@@ -2,6 +2,7 @@ package pt.lisomatrix.safevault.database.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import io.reactivex.Single
 import pt.lisomatrix.safevault.model.Account
 
 @Dao
@@ -23,5 +24,5 @@ interface AccountDao {
     fun get(accountID: String, password: String): Account?
 
     @Query("SELECT * FROM account_table LIMIT 1")
-    fun getAccount(): LiveData<Account>
+    fun getAccount(): Single<Account>
 }

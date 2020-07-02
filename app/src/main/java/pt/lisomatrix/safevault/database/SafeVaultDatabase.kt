@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import net.sqlcipher.database.SQLiteDatabase
+import net.sqlcipher.database.SQLiteDatabaseHook
 import net.sqlcipher.database.SupportFactory
 import pt.lisomatrix.safevault.database.dao.AccountDao
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
@@ -28,6 +29,8 @@ abstract class SafeVaultDatabase : RoomDatabase() {
         fun deleteDatabaseFile(
             context: Context
         ) {
+            INSTANCE?.close()
+            INSTANCE = null
             val databases =
                 File(context.applicationInfo.dataDir + "/databases")
             val db = File(databases, "safe_vault_database")
@@ -55,8 +58,7 @@ abstract class SafeVaultDatabase : RoomDatabase() {
             if (password == null)
                 throw Exception("Database is not initialize and password is null")
 
-            // TODO: Get a way to store the password in memory
-            val supportFactory = SupportFactory(SQLiteDatabase.getBytes(password.toCharArray()))
+            val supportFactory = SupportFactory(SQLiteDatabase.getBytes(password.toCharArray()), null, false)
 
             synchronized(this) {
                 // Encrypted database
@@ -67,12 +69,6 @@ abstract class SafeVaultDatabase : RoomDatabase() {
                     .openHelperFactory(supportFactory)
                     .build()
 
-                // Unecrypted database
-                /*val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    SafeVaultDatabase::class.java,
-                    "safe_vault_database"
-                ).build()*/
                 INSTANCE = instance
                 return instance
             }

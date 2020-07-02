@@ -21,13 +21,15 @@ object AppModule {
     fun provideAuthHandler(@ApplicationContext context: Context) : AuthHandler
             = AuthHandler(context)
 
-    @Singleton
     @Provides
     fun provideAccountDao(@ApplicationContext context: Context) : AccountDao
             = SafeVaultDatabase.getDatabase(context).accountDao()
 
-    @Singleton
     @Provides
     fun provideVaultFileDao(@ApplicationContext context: Context) : VaultFileDao
             = SafeVaultDatabase.getDatabase(context).vaultFileDao()
+
+    @Provides
+    fun provideContext(@ApplicationContext context: Context) : Context
+            = context.applicationContext
 }

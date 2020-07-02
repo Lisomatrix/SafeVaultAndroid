@@ -1,13 +1,20 @@
 package pt.lisomatrix.safevault.ui.home.options.myfiles.viewholder
 
+import android.animation.AnimatorSet
+import android.animation.TimeAnimator
+import android.animation.ValueAnimator
+import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnFocusChangeListener
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import pt.lisomatrix.safevault.R
-import pt.lisomatrix.safevault.other.ViewHolderClickListener
 import pt.lisomatrix.safevault.model.VaultFile
+import pt.lisomatrix.safevault.other.ViewHolderClickListener
+
 
 /**
  * Private [VaultFile] data holder
@@ -35,6 +42,11 @@ class MyFileViewHolder(view: View, private val clickListener: ViewHolderClickLis
      */
     private val selectCB: CheckBox = view.findViewById(R.id.isSelectedCb)
 
+    /**
+     * Used in order to animate the checkbox appearance
+     */
+    private var previousSelectState: Boolean = false
+
     init {
         // Listen of clicks
         view.setOnClickListener(this)
@@ -45,7 +57,6 @@ class MyFileViewHolder(view: View, private val clickListener: ViewHolderClickLis
             setSelected(false)
             updateSelectMode(isSelectMode)
         }
-
     }
 
     /**
@@ -60,22 +71,46 @@ class MyFileViewHolder(view: View, private val clickListener: ViewHolderClickLis
      * Show when select flag is true
      */
     private fun updateSelectMode(isSelectMode: Boolean) {
-        var params = selectCB.layoutParams
+        // If states are equal then cancel
+        if (isSelectMode == previousSelectState) return
 
-        if (isSelectMode) {
-            params.width = 150
-            selectCB.layoutParams = params
-        } else {
-            params.width = 0
-            selectCB.layoutParams = params
+        // Determine which values to change
+        var before: Int = 0
+        var new: Int = 150
+
+        if (previousSelectState) {
+            before = 150
+            new = 0
         }
+
+        // Update previous state
+        previousSelectState = isSelectMode
+
+        // Create animation
+        val slideAnimator = ValueAnimator
+            .ofInt(before, new)
+            .setDuration(300)
+
+        // Gradually change values (animate)
+        slideAnimator.addUpdateListener { animation1: ValueAnimator ->
+            val value = animation1.animatedValue as Int
+            selectCB.layoutParams.width = value
+            selectCB.requestLayout()
+        }
+
+        // Play animation
+        val animationSet = AnimatorSet()
+
+        animationSet.interpolator = AccelerateDecelerateInterpolator()
+        animationSet.play(slideAnimator)
+        animationSet.start()
     }
 
     /**
      * Check/Uncheck Checkbox and notify adapter of the click
      */
     override fun onClick(p0: View?) {
-        clickListener.onTap(adapterPosition)
+        clickListener.onTap(adapterPosition, id)
         selectCB.isChecked = !selectCB.isChecked
     }
 
@@ -90,3 +125,4 @@ class MyFileViewHolder(view: View, private val clickListener: ViewHolderClickLis
         return true
     }
 }
+

@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="pt.lisomatrix.safevault">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
+        android:requestLegacyExternalStorage="true"
         android:name=".SafeVaultApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,6 +25,11 @@
         <activity android:theme="@style/AppTheme.NoActionBar" android:name=".ui.home.HomeActivity">
 
         </activity>
+
+        <provider
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:authorities="${applicationId}.workmanager-init"
+            tools:node="remove" />
     </application>
 
 </manifest>

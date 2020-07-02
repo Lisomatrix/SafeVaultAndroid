@@ -1,5 +1,6 @@
 package pt.lisomatrix.safevault.ui.home.options.myfiles.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LiveData
@@ -7,9 +8,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.model.VaultFile
 import pt.lisomatrix.safevault.other.MainClickListener
+import pt.lisomatrix.safevault.other.Util
 import pt.lisomatrix.safevault.other.ViewHolderClickListener
 import pt.lisomatrix.safevault.ui.home.options.myfiles.viewholder.MyFileViewHolder
 
@@ -56,17 +60,6 @@ class MyFilesAdapter(private val myFiles: MutableList<VaultFile>,
     }
 
     /**
-     * Notify that a item was added
-     */
-    fun itemAdded() {
-        notifyItemInserted(myFiles.size - 1)
-    }
-
-    fun itemRemoved(id: Long) {
-
-    }
-
-    /**
      * Create view of a item list
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyFileViewHolder {
@@ -90,7 +83,7 @@ class MyFilesAdapter(private val myFiles: MutableList<VaultFile>,
         val file = myFiles[position]
 
         holder.fileNameText.text = file.name
-        holder.fileSizeText.text = "50 KBs"
+        holder.fileSizeText.text = Util.readableFileSize(file.size)
         holder.id = file.id!!
 
         holder.setSelected(selectedIds.contains(file.id!!))
@@ -121,9 +114,11 @@ class MyFilesAdapter(private val myFiles: MutableList<VaultFile>,
      *
      * @param [index] of the selected [VaultFile]
      */
-    override fun onTap(index: Int) {
+    override fun onTap(index: Int, id: Long) {
         if (_isSelectMode.value!!) {
             addOrRemoveIDIntoSelectedIds(index)
+        } else {
+            mainInterface.itemPressed(id)
         }
     }
 
@@ -154,15 +149,25 @@ class MyFilesAdapter(private val myFiles: MutableList<VaultFile>,
         mainInterface.mainInterface(selectedIds.size)
     }
 
+    /**
+     * Update the list with the default animations
+     *
+     * @param [newList] [ArrayList] of the new [VaultFile]s
+     */
     fun setList(newList: ArrayList<VaultFile>) {
-        // TODO: CHECK IF BOTH ARRAY ARE THE SAME
-        val result = DiffUtil.calculateDiff(MyFilesListDiffUtilCallback(this.myFiles, newList))
-        result.dispatchUpdatesTo(this)
+        Log.d("DEBUG", "UPDATING LIST")
+        DiffUtil.calculateDiff(MyFilesListDiffUtilCallback(this.myFiles, newList))
+            .dispatchUpdatesTo(this)
         this.myFiles.clear()
         this.myFiles.addAll(newList)
     }
 
+    /**
+     * Thank you Google for this
+     * No more manual diffing
+     */
     class MyFilesListDiffUtilCallback(private val oldList: List<VaultFile>, private val newList: List<VaultFile>) : DiffUtil.Callback() {
+
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
             return oldList[oldItemPosition] == newList[newItemPosition]
         }

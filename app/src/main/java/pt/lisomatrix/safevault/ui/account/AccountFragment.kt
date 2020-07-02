@@ -17,6 +17,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.disposables.Disposable
 import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.databinding.AccountFragmentBinding
 import pt.lisomatrix.safevault.ui.home.HomeActivity
@@ -29,6 +30,8 @@ class AccountFragment : Fragment() {
     private lateinit var binding: AccountFragmentBinding
     private lateinit var accountID: String
 
+    private var subscription: Disposable? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,7 +40,7 @@ class AccountFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.account_fragment, container, false)
 
         // Get account ID
-        viewModel.account.observe(this.viewLifecycleOwner) { account ->
+        subscription = viewModel.account.subscribe { account ->
             binding.accountIDText.text = account.accountID
             accountID = account.accountID
         }
@@ -60,13 +63,17 @@ class AccountFragment : Fragment() {
 
         // Navigate to home page
         binding.continueTxt.setOnClickListener {
-            val intent = Intent(requireContext(), HomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-            startActivity(intent)
-            activity?.finish()
+            findNavController()
+                .navigate(AccountFragmentDirections.actionAccountFragmentToHomeActivity())
+            requireActivity().finish()
         }
 
         return binding.root
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        subscription?.dispose()
+    }
 }
