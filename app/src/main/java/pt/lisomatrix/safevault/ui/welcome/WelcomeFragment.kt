@@ -43,8 +43,9 @@ class WelcomeFragment : Fragment() {
         val pagerAdapter = ScreenSlidePagerAdapter(requireContext(), layouts)
         binding.pager.adapter = pagerAdapter
 
-        // Update accept button visibility
+        // Update accept button and arrows visibility
         updateAcceptButton(binding.pager.currentItem)
+        updateArrowButtons(binding.pager.currentItem)
 
         // Listen to page changes
         binding.pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
@@ -56,8 +57,9 @@ class WelcomeFragment : Fragment() {
 
             }
             override fun onPageSelected(position: Int) {
-                // Update accept button visibility
-               updateAcceptButton(position)
+                // Update accept button and arrows visibility
+                updateAcceptButton(position)
+                updateArrowButtons(position)
             }
         })
 
@@ -90,5 +92,17 @@ class WelcomeFragment : Fragment() {
             binding.acceptTxt.visibility = View.VISIBLE
         else
             binding.acceptTxt.visibility = View.INVISIBLE
+    }
+
+    private fun updateArrowButtons(position: Int) {
+
+        binding.nextArrowBtn.visibility = View.VISIBLE
+        binding.backArrowBtn.visibility = View.VISIBLE
+
+        if (position == 3) {
+            binding.nextArrowBtn.visibility = View.INVISIBLE
+        } else if (position == 0) {
+            binding.backArrowBtn.visibility = View.INVISIBLE
+        }
     }
 }

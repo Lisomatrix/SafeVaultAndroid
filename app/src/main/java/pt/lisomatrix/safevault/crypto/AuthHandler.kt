@@ -1,6 +1,7 @@
 package pt.lisomatrix.safevault.crypto
 
 import android.app.ActivityManager
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.util.Log

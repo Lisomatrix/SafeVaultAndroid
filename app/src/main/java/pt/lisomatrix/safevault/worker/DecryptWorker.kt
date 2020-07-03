@@ -81,7 +81,7 @@ class DecryptWorker @WorkerInject constructor(
             builder
                 .setContentTitle("${vaultFile.name} decrypted")
                 .setProgress(0, 0, false)
-                .setTimeoutAfter(5000)
+                .setTimeoutAfter(10000)
                 .setAutoCancel(true)
                 .setContentIntent(openFile(newFile.uri))
                 .setOnlyAlertOnce(false)

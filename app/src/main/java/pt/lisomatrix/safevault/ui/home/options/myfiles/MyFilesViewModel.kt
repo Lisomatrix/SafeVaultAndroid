@@ -1,5 +1,6 @@
 package pt.lisomatrix.safevault.ui.home.options.myfiles
 
+import android.app.KeyguardManager
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
@@ -76,11 +77,20 @@ class MyFilesViewModel @ViewModelInject
 
 
     fun generateKey() {
+
+        // If device doesn't have a password don't even bother trying to require auth
+        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val keyGenParameterSpec = KeyGenParameterSpec
             .Builder("SafeVaultKey", KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setUserAuthenticationRequired(false) // Have to keep this for now :(
+            //.setUserAuthenticationRequired(keyguardManager.isDeviceSecure)
+            // Have to do a rework, there currently bugs on the Samsung way of dealing with
+            // this
+            //.setUserAuthenticationValidityDurationSeconds(200) This is not secure
             .build()
 
         keyGenerator.init(keyGenParameterSpec)

@@ -40,7 +40,6 @@ public class ASFUriUtil {
         else return null;
     }
 
-
     @SuppressLint("ObsoleteSdkInt")
     private static String getVolumePath(final String volumeId, Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null;
@@ -95,7 +94,6 @@ public class ASFUriUtil {
         }
         else return volumePath;
     }
-
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static String getPath(final Context context, final Uri uri) {

@@ -1,15 +1,19 @@
 package pt.lisomatrix.safevault.worker
 
-import android.app.Notification
-import android.app.NotificationManager
+import android.app.Activity
+import android.app.ActivityManager
+import android.app.KeyguardManager
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
-import android.view.View
+import androidx.biometric.BiometricPrompt
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.Assisted
 import androidx.hilt.work.WorkerInject
@@ -18,21 +22,24 @@ import androidx.work.WorkerParameters
 import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import pt.lisomatrix.safevault.model.VaultFile
+import pt.lisomatrix.safevault.ui.auth.AuthActivity
+import pt.lisomatrix.safevault.ui.home.HomeActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.security.Key
 import java.security.KeyStore
+import java.util.concurrent.Executor
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
 import kotlin.random.Random
 
 class EncryptWorker @WorkerInject
-    constructor(
-        @Assisted private val context: Context,
-        @Assisted private val workerParameters: WorkerParameters,
-        private val vaultFileDao: VaultFileDao
-    ) : Worker(context, workerParameters) {
+constructor(
+    @Assisted private val context: Context,
+    @Assisted private val workerParameters: WorkerParameters,
+    private val vaultFileDao: VaultFileDao
+) : Worker(context, workerParameters) {
 
     private val appFilePath: String
             = context.filesDir.absolutePath
@@ -128,6 +135,7 @@ class EncryptWorker @WorkerInject
         val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
 
         cipher.init(Cipher.ENCRYPT_MODE, getKey())
+
         // Get IV in order to store it
         val ivBytes = cipher.iv
 
