@@ -2,38 +2,37 @@ package pt.lisomatrix.safevault.ui.home.options.myfiles
 
 import android.app.KeyguardManager
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
-import android.provider.OpenableColumns
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.security.crypto.EncryptedFile
-import androidx.security.crypto.MasterKey
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import hu.akarnokd.rxjava3.bridge.RxJavaBridge
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import pt.lisomatrix.safevault.model.VaultFile
 import pt.lisomatrix.safevault.worker.DecryptWorker
 import pt.lisomatrix.safevault.worker.EncryptWorker
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.security.Key
-import java.security.KeyStore
-import javax.crypto.Cipher
+import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
+import java.util.stream.Collectors
 import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
+import kotlin.collections.ArrayList
 
 
 class MyFilesViewModel @ViewModelInject
@@ -50,10 +49,41 @@ class MyFilesViewModel @ViewModelInject
      *
      * @param [ids] to be deleted
      */
+    @RequiresApi(Build.VERSION_CODES.N)
     fun deleteVaultFiles(ids: LongArray) {
         viewModelScope.launch(Dispatchers.IO) {
-            vaultFileDao.deleteByIds(ids)
+            val files = vaultFileDao.getByIds(ids)
+
+            files.pmap { file ->
+                try {
+                    // Delete file that was encrypted
+                    File(file.path).delete()
+                } catch (ex: Exception) {
+                    Log.d("FILE_DELETE_ERROR", "Could not delete file: " + file.path)
+                }
+
+                vaultFileDao.delete(file)
+            }
         }
+    }
+
+    fun <T, R> Iterable<T>.pmap(
+        numThreads: Int = Runtime.getRuntime().availableProcessors() - 2,
+        exec: ExecutorService = Executors.newFixedThreadPool(numThreads),
+        transform: (T) -> R): List<R> {
+
+        // default size is just an inlined version of kotlin.collections.collectionSizeOrDefault
+        val defaultSize = if (this is Collection<*>) this.size else 10
+        val destination = Collections.synchronizedList(ArrayList<R>(defaultSize))
+
+        for (item in this) {
+            exec.submit { destination.add(transform(item)) }
+        }
+
+        exec.shutdown()
+        exec.awaitTermination(1, TimeUnit.DAYS)
+
+        return ArrayList<R>(destination)
     }
 
     /**

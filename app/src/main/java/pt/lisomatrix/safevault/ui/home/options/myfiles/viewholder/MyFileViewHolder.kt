@@ -8,6 +8,7 @@ import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView

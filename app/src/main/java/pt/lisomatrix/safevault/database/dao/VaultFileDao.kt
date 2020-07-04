@@ -34,4 +34,7 @@ interface VaultFileDao {
 
     @Query("delete from vault_file_table where id in (:idList)")
     fun deleteByIds(idList: LongArray): Int
+
+    @Query("SELECT * FROM vault_file_table where id in (:idList)")
+    fun getByIds(idList: LongArray): List<VaultFile>
 }

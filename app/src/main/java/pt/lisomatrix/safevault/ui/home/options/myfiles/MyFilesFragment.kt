@@ -292,11 +292,6 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
             }
         } else if (requestCode == READ_REQUEST_CODE + 1 && resultCode == Activity.RESULT_OK) {
             resultData?.data?.also { uri ->
-                /*val docUri: Uri = DocumentsContract.buildDocumentUriUsingTree(
-                    uri,
-                    DocumentsContract.getTreeDocumentId(uri)
-                )
-                val path: String = getPath(requireContext(), docUri)*/
                 viewModel.decryptFile(selectedItemId, uri)
                 selectedItemId = -1
             }
