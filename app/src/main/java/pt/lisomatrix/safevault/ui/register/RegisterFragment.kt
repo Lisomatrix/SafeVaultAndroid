@@ -2,7 +2,6 @@ package pt.lisomatrix.safevault.ui.register
 
 import android.content.Context
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +15,7 @@ import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.SafeVaultApplication.Companion.APPLICATION_NAME
 import pt.lisomatrix.safevault.databinding.RegisterFragmentBinding
 import pt.lisomatrix.safevault.extensions.hideKeyboard
-import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_KEY_GENERATED
+import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_FILE_BEING_SELECTED
 
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
@@ -52,7 +51,7 @@ class RegisterFragment : Fragment() {
                 val sharedPref = requireContext()
                     .getSharedPreferences(APPLICATION_NAME, Context.MODE_PRIVATE)
                 val edit = sharedPref.edit()
-                edit.putBoolean(IS_KEY_GENERATED, false)
+                edit.putBoolean(IS_FILE_BEING_SELECTED, false)
                 edit.commit()
 
                 // Navigate to welcome

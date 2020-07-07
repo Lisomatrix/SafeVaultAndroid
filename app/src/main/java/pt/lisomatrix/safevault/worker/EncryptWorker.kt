@@ -1,19 +1,14 @@
 package pt.lisomatrix.safevault.worker
 
-import android.app.Activity
-import android.app.ActivityManager
-import android.app.KeyguardManager
 import android.content.Context
-import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.util.Log
-import androidx.biometric.BiometricPrompt
-import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.Assisted
 import androidx.hilt.work.WorkerInject
@@ -22,17 +17,16 @@ import androidx.work.WorkerParameters
 import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import pt.lisomatrix.safevault.model.VaultFile
-import pt.lisomatrix.safevault.ui.auth.AuthActivity
-import pt.lisomatrix.safevault.ui.home.HomeActivity
-import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.security.Key
 import java.security.KeyStore
-import java.util.concurrent.Executor
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 import kotlin.random.Random
 
 class EncryptWorker @WorkerInject
@@ -51,7 +45,7 @@ constructor(
         .setSmallIcon(R.drawable.logo)
         .setContentTitle("SafeVault Working")
         .setContentText("File will be added when complete")
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
         .setOnlyAlertOnce(true)
 
     private val notificationID = Random.nextInt()
@@ -69,8 +63,7 @@ constructor(
         // Get file extension
         val fileExtension = getExtension(fileInfo.first)
         // Define encrypted file name
-        // TODO: THIS SHOULD BE A RANDOM ID
-        val fileToWrite = "${fileInfo.first}.enc"
+        val fileToWrite = "${UUID.randomUUID().toString().replace("-", "")}.enc"
 
         // Start notification progress
         with(NotificationManagerCompat.from(context)) {
@@ -85,8 +78,17 @@ constructor(
         val stream
                 = context.contentResolver.openInputStream(uri)
 
+        val newAlias = UUID.randomUUID().toString().replace("-", "")
+
+        val key = generateKey(newAlias) ?: return Result.failure()
+
+        val outputStream = newFile.outputStream()
+
         // Encrypt data and get IV to store it
-        val iv = encryptData(stream, newFile.outputStream(), fileInfo.second)
+        val iv = encryptData(stream, outputStream, fileInfo.second, key)
+
+        stream?.close()
+        outputStream?.close()
 
         // Create file
         val file = VaultFile().apply {
@@ -94,17 +96,23 @@ constructor(
             size = fileInfo.second
             extension = fileExtension!!
             path = newFile.absolutePath
-            key = iv
+            this.iv = iv
+            alias = newAlias
         }
 
         // Update database
-        vaultFileDao.insert(file)
+        val id = vaultFileDao.insert(file)
+
 
         // Delete file that was encrypted
         DocumentFile.fromSingleUri(context, uri)?.delete().toString()
 
         // Update notification
         with(NotificationManagerCompat.from(context)) {
+            // Remove previous notification
+            // For some reason sometimes the notification is not updated
+            cancel(notificationID)
+
             builder
                 .setSmallIcon(R.drawable.logo)
                 .setContentText("File added")
@@ -114,28 +122,22 @@ constructor(
                 .setOnlyAlertOnce(false)
                 .setAutoCancel(true)
             notify(notificationID, builder.build())
-            Log.d("PASSED", "PASSED")
         }
 
         return Result.success()
     }
 
-    private fun getKey(): Key {
-        val store = KeyStore.getInstance("AndroidKeyStore")
-        store.load(null)
-
-        return store.getKey("SafeVaultKey", null)
-    }
-
     private fun encryptData(
         stream: InputStream?,
         outputStream: FileOutputStream,
-        total: Long
+        total: Long,
+        secretKey: SecretKey
     ): ByteArray? {
         // Initialize cipher
-        val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        //val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
-        cipher.init(Cipher.ENCRYPT_MODE, getKey())
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
 
         // Get IV in order to store it
         val ivBytes = cipher.iv
@@ -175,11 +177,25 @@ constructor(
         }
 
         // Fecha a torneira
-        outputStream.close()
-        stream?.close()
         fis.close()
 
         return ivBytes
+    }
+
+    private fun generateKey(alias: String): SecretKey? {
+        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+        val keyGenParameterSpec = KeyGenParameterSpec
+            .Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setUserAuthenticationRequired(false) // Have to keep this for now :(
+            //.setUserAuthenticationRequired(keyguardManager.isDeviceSecure)
+            // Have to do a rework, there currently bugs
+            // on the Samsung way of dealing with this
+            .build()
+
+        keyGenerator.init(keyGenParameterSpec)
+        return keyGenerator.generateKey()
     }
 
     private fun getExtension(fileName: String): String? {

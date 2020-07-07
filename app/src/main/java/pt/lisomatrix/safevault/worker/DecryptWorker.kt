@@ -16,10 +16,11 @@ import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
-import java.security.Key
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import kotlin.random.Random
 
@@ -35,7 +36,7 @@ class DecryptWorker @WorkerInject constructor(
         .setOngoing(true)
         .setSmallIcon(R.drawable.logo)
         .setContentTitle("SafeVault Working")
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
         .setOnlyAlertOnce(true)
 
     private val notificationID = Random.nextInt()
@@ -69,8 +70,10 @@ class DecryptWorker @WorkerInject constructor(
         val encryptedStream = file.inputStream()
         val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)!!
 
+        val key = getKey(vaultFile.alias!!) ?: return Result.failure()
+
         // Create new decrypted file
-        decryptData(vaultFile.key!!, encryptedStream, outputStream, file.length())
+        decryptData(vaultFile.iv!!, encryptedStream, outputStream, file.length(), key)
 
         // Close the streams (fecha a torneira)
         outputStream.close()
@@ -78,6 +81,10 @@ class DecryptWorker @WorkerInject constructor(
 
         // Update notification
         with(NotificationManagerCompat.from(context)) {
+            // Remove previous notification
+            // For some reason sometimes the notification is not updated
+            cancel(notificationID)
+
             builder
                 .setContentTitle("${vaultFile.name} decrypted")
                 .setProgress(0, 0, false)
@@ -95,13 +102,16 @@ class DecryptWorker @WorkerInject constructor(
         ivBytes: ByteArray,
         encryptedData: FileInputStream,
         outputStream: OutputStream,
-        total: Long
+        total: Long,
+        secretKey: SecretKey
     ) {
         // Initialize cipher
-        val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        //val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         // Set the IV used to encrypt file
-        val spec = IvParameterSpec(ivBytes)
-        cipher.init(Cipher.DECRYPT_MODE, getKey(), spec)
+        //val spec = IvParameterSpec(ivBytes) this is for CBC
+        val spec = GCMParameterSpec(128, ivBytes) // this is for GCM
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
 
         // Initialize encrypted stream
         val fis = CipherInputStream(encryptedData, cipher)
@@ -129,7 +139,7 @@ class DecryptWorker @WorkerInject constructor(
 
             // Only update if the progress turns from 9 to 10 and not 9.00001 to 9.00002
             // Have to limit the update frequency or android might drop some notifications
-            if (newProgress != progress && newProgress - progress > 5) {
+           if (newProgress != progress && newProgress - progress > 2) {
                 // Update notification
                 with (NotificationManagerCompat.from(context)) {
                     builder.setProgress(100, newProgress, false)
@@ -137,19 +147,20 @@ class DecryptWorker @WorkerInject constructor(
                 }
 
                 // Save new progress
-                progress = newProgress
-            }
+              progress = newProgress
+           }
         }
 
         // Fecha a torneira
         fis.close()
+
     }
 
-    private fun getKey(): Key {
+    private fun getKey(alias: String): SecretKey? {
         val store = KeyStore.getInstance("AndroidKeyStore")
         store.load(null)
 
-        return store.getKey("SafeVaultKey", null)
+        return store.getKey(alias, null) as SecretKey
     }
 
     /**

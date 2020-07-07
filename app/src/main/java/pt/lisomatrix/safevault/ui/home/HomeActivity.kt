@@ -16,6 +16,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import pt.lisomatrix.safevault.R
+import pt.lisomatrix.safevault.SafeVaultApplication
 import pt.lisomatrix.safevault.databinding.ActivityHomeBinding
 import pt.lisomatrix.safevault.ui.auth.AuthActivity
 import pub.devrel.easypermissions.AfterPermissionGranted
@@ -27,7 +28,7 @@ import java.util.concurrent.Executor
 class HomeActivity : AppCompatActivity() {
 
     companion object {
-        const val IS_KEY_GENERATED = "KEY_GENERATED"
+        const val IS_FILE_BEING_SELECTED = "IS_FILE_BEING_SELECTED"
         var isSecure = false
         var isFirstRequest = true
     }
@@ -40,7 +41,7 @@ class HomeActivity : AppCompatActivity() {
         // Initialize binding
         binding = DataBindingUtil.setContentView(this, R.layout.activity_home)
         // When in background we want to prevent screen shots
-        // Over even peek at files
+        // Even peek at files
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 
         val keyguardManager = application.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -57,6 +58,21 @@ class HomeActivity : AppCompatActivity() {
 
 
         methodRequiresTwoPermission()
+    }
+
+    private fun shouldRequireAuth(): Boolean {
+        val sharedPref = applicationContext
+            .getSharedPreferences(SafeVaultApplication.APPLICATION_NAME, Context.MODE_PRIVATE)
+
+        if (sharedPref.getBoolean(IS_FILE_BEING_SELECTED, false)) {
+            with(sharedPref.edit()) {
+                putBoolean(IS_FILE_BEING_SELECTED, false)
+                commit()
+            }
+            return false
+        }
+
+        return true
     }
 
     override fun onRequestPermissionsResult(
@@ -80,7 +96,7 @@ class HomeActivity : AppCompatActivity() {
 
         val keyguardManager = application.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
 
-        if (keyguardManager.isDeviceSecure && !isSecure) {
+        if (shouldRequireAuth() && keyguardManager.isDeviceSecure && !isSecure) {
             startActivityForResult(Intent(applicationContext, AuthActivity::class.java), 2)
         }
     }
@@ -118,6 +134,7 @@ class HomeActivity : AppCompatActivity() {
         var navController = findNavController(R.id.nav_home_host_fragment)
 
         // Setting Navigation Controller with the BottomNavigationView
+        // No time to implement the other pages
         binding.bottomNav.setupWithNavController(navController)
     }
 }

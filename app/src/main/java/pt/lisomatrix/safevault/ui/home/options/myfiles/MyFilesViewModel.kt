@@ -20,8 +20,10 @@ import hu.akarnokd.rxjava3.bridge.RxJavaBridge
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import pt.lisomatrix.safevault.SafeVaultApplication
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import pt.lisomatrix.safevault.model.VaultFile
+import pt.lisomatrix.safevault.ui.home.HomeActivity
 import pt.lisomatrix.safevault.worker.DecryptWorker
 import pt.lisomatrix.safevault.worker.EncryptWorker
 import java.io.File
@@ -49,7 +51,6 @@ class MyFilesViewModel @ViewModelInject
      *
      * @param [ids] to be deleted
      */
-    @RequiresApi(Build.VERSION_CODES.N)
     fun deleteVaultFiles(ids: LongArray) {
         viewModelScope.launch(Dispatchers.IO) {
             val files = vaultFileDao.getByIds(ids)
@@ -67,24 +68,19 @@ class MyFilesViewModel @ViewModelInject
         }
     }
 
-    fun <T, R> Iterable<T>.pmap(
-        numThreads: Int = Runtime.getRuntime().availableProcessors() - 2,
-        exec: ExecutorService = Executors.newFixedThreadPool(numThreads),
-        transform: (T) -> R): List<R> {
+    fun isSelectingFile(isBeingSelected: Boolean) {
+        val sharedPref = context
+            .getSharedPreferences(SafeVaultApplication.APPLICATION_NAME, Context.MODE_PRIVATE)
 
-        // default size is just an inlined version of kotlin.collections.collectionSizeOrDefault
-        val defaultSize = if (this is Collection<*>) this.size else 10
-        val destination = Collections.synchronizedList(ArrayList<R>(defaultSize))
+        if (!sharedPref.getBoolean(HomeActivity.IS_FILE_BEING_SELECTED, !isBeingSelected)) {
 
-        for (item in this) {
-            exec.submit { destination.add(transform(item)) }
+            with (sharedPref.edit()) {
+                putBoolean(HomeActivity.IS_FILE_BEING_SELECTED, true)
+                commit()
+            }
         }
-
-        exec.shutdown()
-        exec.awaitTermination(1, TimeUnit.DAYS)
-
-        return ArrayList<R>(destination)
     }
+
 
     /**
      * Get all [VaultFile]s from the database
@@ -103,28 +99,6 @@ class MyFilesViewModel @ViewModelInject
         // This bridge is ugly but Room database only supports RxJava2
         val searchParam = "%$name%"
         return RxJavaBridge.toV3Observable(vaultFileDao.getByName(searchParam))
-    }
-
-
-    fun generateKey() {
-
-        // If device doesn't have a password don't even bother trying to require auth
-        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-
-        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-        val keyGenParameterSpec = KeyGenParameterSpec
-            .Builder("SafeVaultKey", KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-            .setUserAuthenticationRequired(false) // Have to keep this for now :(
-            //.setUserAuthenticationRequired(keyguardManager.isDeviceSecure)
-            // Have to do a rework, there currently bugs on the Samsung way of dealing with
-            // this
-            //.setUserAuthenticationValidityDurationSeconds(200) This is not secure
-            .build()
-
-        keyGenerator.init(keyGenParameterSpec)
-        keyGenerator.generateKey()
     }
 
     fun encryptFile(uri: Uri) {
@@ -156,5 +130,25 @@ class MyFilesViewModel @ViewModelInject
             .getInstance(context)
             .enqueue(decryptWorkRequest)
 
+    }
+
+    // Helper for parallel mapping
+    fun <T, R> Iterable<T>.pmap(
+        numThreads: Int = Runtime.getRuntime().availableProcessors() - 2,
+        exec: ExecutorService = Executors.newFixedThreadPool(numThreads),
+        transform: (T) -> R): List<R> {
+
+        // default size is just an inlined version of kotlin.collections.collectionSizeOrDefault
+        val defaultSize = if (this is Collection<*>) this.size else 10
+        val destination = Collections.synchronizedList(ArrayList<R>(defaultSize))
+
+        for (item in this) {
+            exec.submit { destination.add(transform(item)) }
+        }
+
+        exec.shutdown()
+        exec.awaitTermination(2, TimeUnit.DAYS)
+
+        return ArrayList<R>(destination)
     }
 }

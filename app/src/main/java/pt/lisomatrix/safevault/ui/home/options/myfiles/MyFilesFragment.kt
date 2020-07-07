@@ -3,9 +3,7 @@ package pt.lisomatrix.safevault.ui.home.options.myfiles
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,13 +24,12 @@ import pt.lisomatrix.safevault.R
 import pt.lisomatrix.safevault.SafeVaultApplication.Companion.APPLICATION_NAME
 import pt.lisomatrix.safevault.databinding.MyFilesFragmentBinding
 import pt.lisomatrix.safevault.model.VaultFile
-import pt.lisomatrix.safevault.other.ASFUriUtil.getPath
 import pt.lisomatrix.safevault.other.MainClickListener
 import pt.lisomatrix.safevault.other.SearchListener
 import pt.lisomatrix.safevault.other.SelectedListener
 import pt.lisomatrix.safevault.ui.component.SelectComponent.SelectedFragment
 import pt.lisomatrix.safevault.ui.component.search.SearchToolbarFragment
-import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_KEY_GENERATED
+import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_FILE_BEING_SELECTED
 import pt.lisomatrix.safevault.ui.home.options.myfiles.adapter.MyFilesAdapter
 import java.util.concurrent.TimeUnit
 
@@ -111,19 +108,6 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
         getFilesStream()
 
         onSearchChanged()
-
-        val sharedPref = requireContext()
-            .getSharedPreferences(APPLICATION_NAME, Context.MODE_PRIVATE)
-
-        if (!sharedPref.getBoolean(IS_KEY_GENERATED, false)) {
-            viewModel.generateKey()
-
-            with (sharedPref.edit()) {
-                putBoolean(IS_KEY_GENERATED, true)
-                commit()
-            }
-        }
-
 
         return binding.root
     }
@@ -249,6 +233,7 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
 
     override fun addPressed() {
         // Request user to search for a file
+        viewModel.isSelectingFile(true)
         performFileSearch()
     }
 
@@ -299,6 +284,7 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
     }
 
     override fun itemPressed(index: Long) {
+        viewModel.isSelectingFile(true)
         selectedItemId = index
         performFolderSearch()
     }

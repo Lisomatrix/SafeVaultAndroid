@@ -2,7 +2,6 @@ package pt.lisomatrix.safevault.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import javax.annotation.Nullable
 
 @Entity(tableName = "vault_file_table")
 data class VaultFile(
@@ -13,7 +12,8 @@ data class VaultFile(
     var extension: String = "",
     var path: String = "",
     var size: Long = 0L,
-    var key: ByteArray? = null
+    var iv: ByteArray? = null,
+    var alias: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -26,10 +26,11 @@ data class VaultFile(
         if (extension != other.extension) return false
         if (path != other.path) return false
         if (size != other.size) return false
-        if (key != null) {
-            if (other.key == null) return false
-            if (!key!!.contentEquals(other.key!!)) return false
-        } else if (other.key != null) return false
+        if (alias != other.alias) return false
+        if (iv != null) {
+            if (other.iv == null) return false
+            if (!iv!!.contentEquals(other.iv!!)) return false
+        } else if (other.iv != null) return false
 
         return true
     }
@@ -40,7 +41,8 @@ data class VaultFile(
         result = 31 * result + extension.hashCode()
         result = 31 * result + path.hashCode()
         result = 31 * result + size.hashCode()
-        result = 31 * result + (key?.contentHashCode() ?: 0)
+        result = 31 * result + alias.hashCode()
+        result = 31 * result + (iv?.contentHashCode() ?: 0)
         return result
     }
 }
