@@ -24,6 +24,7 @@ import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import pt.lisomatrix.safevault.model.VaultFile
 import pt.lisomatrix.safevault.ui.auth.AuthActivity
 import pt.lisomatrix.safevault.ui.home.HomeActivity
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -146,7 +147,8 @@ constructor(
         var totalRead = 0L
         var bytesRead: Int
         // Buffer
-        val data = ByteArray(4096)
+        val data = ByteArray(32 * 1024)
+        //val data = ByteArray(4096)
         // Progress
         var progress: Int = 0
 

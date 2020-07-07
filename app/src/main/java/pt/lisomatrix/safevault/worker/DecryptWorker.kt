@@ -114,7 +114,8 @@ class DecryptWorker @WorkerInject constructor(
         var progress: Int = 0
 
         // Buffer
-        val data = ByteArray(4096)
+        //val data = ByteArray(4096)
+        val data = ByteArray(32 * 1024)
 
         // While there are bytes read
         while (fis.read(data).also { bytesRead = it } != -1) {
