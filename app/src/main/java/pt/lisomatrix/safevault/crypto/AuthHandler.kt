@@ -43,7 +43,6 @@ class AuthHandler (context: Context) {
     suspend fun register(password: String): String {
         // Run on IO Thread
         return withContext(Dispatchers.IO) {
-            // TODO: REPLACE THIS WITH A PROPER IMPLEMENTATION
             // Generate account ID
             var accountID = UUID.randomUUID().toString().replace("-", "")
             accountID = accountID.substring(0, accountID.length / 4)
@@ -55,9 +54,6 @@ class AuthHandler (context: Context) {
             // Create account
             val account = Account(accountID, encodedHash.contentToString())
 
-
-            // Delete all files
-            clearApplicationData()
             /*
 
             THIS IS THE BEST SOLUTION BUT IT CLOSES THE APP AND IT IS BAD UX
@@ -69,12 +65,6 @@ class AuthHandler (context: Context) {
             } else {
                 Log.d("DELETE", "Application data failed deleted")
             }*/
-
-            // Clear shared preferences
-            context.getSharedPreferences(SafeVaultApplication.APPLICATION_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit()
 
             // Delete the most data possible
             nukeData()
@@ -192,7 +182,15 @@ class AuthHandler (context: Context) {
      * including tables and files
      */
     private fun nukeData() {
-        // TODO: DELETE ALL FILES PROBABLY WITH A WORKER
+
+        // Delete all files
+        clearApplicationData()
+
+        // Clear shared preferences
+        context.getSharedPreferences(SafeVaultApplication.APPLICATION_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
 
         // Try to close database
         // If it crashes then database was not initialized

@@ -27,6 +27,7 @@ import pt.lisomatrix.safevault.ui.home.HomeActivity
 import pt.lisomatrix.safevault.worker.DecryptWorker
 import pt.lisomatrix.safevault.worker.EncryptWorker
 import java.io.File
+import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.stream.Collectors
 import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
 
 
@@ -55,14 +57,23 @@ class MyFilesViewModel @ViewModelInject
         viewModelScope.launch(Dispatchers.IO) {
             val files = vaultFileDao.getByIds(ids)
 
+            val store = KeyStore.getInstance("AndroidKeyStore")
+            store.load(null)
+
             files.pmap { file ->
                 try {
                     // Delete file that was encrypted
                     File(file.path).delete()
+
                 } catch (ex: Exception) {
                     Log.d("FILE_DELETE_ERROR", "Could not delete file: " + file.path)
                 }
 
+                // I don't find any information that it is thread safe
+                // However still haven't get a crash, but it will keep it anyway
+                synchronized(this) {
+                   store.deleteEntry(file.alias)
+                }
                 vaultFileDao.delete(file)
             }
         }

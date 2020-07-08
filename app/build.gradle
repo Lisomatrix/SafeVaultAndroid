@@ -35,6 +35,7 @@ android {
         }
     }
 
+    // active these on Android Studio, Intellij Ultimate does not support it
     buildFeatures {
         dataBinding = true
         viewBinding = true

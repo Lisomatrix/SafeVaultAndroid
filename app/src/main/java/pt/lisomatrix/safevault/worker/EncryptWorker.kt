@@ -3,6 +3,7 @@ package pt.lisomatrix.safevault.worker
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -190,11 +191,22 @@ constructor(
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setUserAuthenticationRequired(false) // Have to keep this for now :(
             //.setUserAuthenticationRequired(keyguardManager.isDeviceSecure)
-            // Have to do a rework, there currently bugs
+            // Have to do a rework, there are currently bugs
             // on the Samsung way of dealing with this
-            .build()
+            // TODO: REMINDER: without this (require auth) there are ways to bypass biometric
+            // prompts. So THIS IS SUPER IMPORTANT
 
-        keyGenerator.init(keyGenParameterSpec)
+        // This is super, super, super important (did I said super?)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            keyGenParameterSpec.setIsStrongBoxBacked(true)
+
+            // When authentication is required also uncomment this
+            //keyGenParameterSpec.setInvalidatedByBiometricEnrollment(true)
+            //keyGenParameterSpec.setUnlockedDeviceRequired(true)
+            //keyGenParameterSpec.setUserAuthenticationValidityDurationSeconds(-1)
+        }
+
+        keyGenerator.init(keyGenParameterSpec.build())
         return keyGenerator.generateKey()
     }
 
