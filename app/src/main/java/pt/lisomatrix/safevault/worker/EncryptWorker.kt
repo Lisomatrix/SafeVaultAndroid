@@ -1,11 +1,13 @@
 package pt.lisomatrix.safevault.worker
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -135,7 +137,6 @@ constructor(
         secretKey: SecretKey
     ): ByteArray? {
         // Initialize cipher
-        //val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -198,12 +199,15 @@ constructor(
 
         // This is super, super, super important (did I said super?)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            keyGenParameterSpec.setIsStrongBoxBacked(true)
+            val hasStrongBox = context.packageManager
+                .hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+
+            keyGenParameterSpec.setIsStrongBoxBacked(hasStrongBox)
 
             // When authentication is required also uncomment this
-            //keyGenParameterSpec.setInvalidatedByBiometricEnrollment(true)
-            //keyGenParameterSpec.setUnlockedDeviceRequired(true)
-            //keyGenParameterSpec.setUserAuthenticationValidityDurationSeconds(-1)
+            keyGenParameterSpec.setInvalidatedByBiometricEnrollment(true)
+            keyGenParameterSpec.setUnlockedDeviceRequired(true)
+            keyGenParameterSpec.setUserAuthenticationValidityDurationSeconds(-1)
         }
 
         keyGenerator.init(keyGenParameterSpec.build())

@@ -17,6 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import hu.akarnokd.rxjava3.bridge.RxJavaBridge
+import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -110,6 +111,13 @@ class MyFilesViewModel @ViewModelInject
         // This bridge is ugly but Room database only supports RxJava2
         val searchParam = "%$name%"
         return RxJavaBridge.toV3Observable(vaultFileDao.getByName(searchParam))
+    }
+
+    /**
+     * Get [VaultFile] from the database with the given [id]
+     */
+    fun getVaultFileById(id: Long): Maybe<VaultFile> {
+        return RxJavaBridge.toV3Maybe(vaultFileDao.get(id))
     }
 
     fun encryptFile(uri: Uri) {

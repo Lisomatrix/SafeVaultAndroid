@@ -4,6 +4,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.security.keystore.KeyInfo
+import android.util.Log
+import androidx.biometric.BiometricPrompt
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
@@ -12,10 +15,12 @@ import androidx.hilt.work.WorkerInject
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import pt.lisomatrix.safevault.R
+import pt.lisomatrix.safevault.crypto.CryptoProvider
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
 import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStream
+import java.security.KeyFactory
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
@@ -52,6 +57,9 @@ class DecryptWorker @WorkerInject constructor(
 
         val uri = Uri.parse(workerParameters.inputData.getString("uri"))
 
+        val cryptoObj = CryptoProvider.getCryptoObject(fileId, true) ?: return Result.failure()
+        val cipher = cryptoObj.cipher ?: return Result.failure()
+
         // Update notification
         with(NotificationManagerCompat.from(context)) {
             builder.setProgress(100, 0, false)
@@ -73,7 +81,7 @@ class DecryptWorker @WorkerInject constructor(
         val key = getKey(vaultFile.alias!!) ?: return Result.failure()
 
         // Create new decrypted file
-        decryptData(vaultFile.iv!!, encryptedStream, outputStream, file.length(), key)
+        decryptData(vaultFile.iv!!, encryptedStream, outputStream, file.length(), key, cipher)
 
         // Close the streams (fecha a torneira)
         outputStream.close()
@@ -103,10 +111,11 @@ class DecryptWorker @WorkerInject constructor(
         encryptedData: FileInputStream,
         outputStream: OutputStream,
         total: Long,
-        secretKey: SecretKey
+        secretKey: SecretKey,
+        cipher: Cipher
     ) {
+
         // Initialize cipher
-        //val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         // Set the IV used to encrypt file
         //val spec = IvParameterSpec(ivBytes) this is for CBC

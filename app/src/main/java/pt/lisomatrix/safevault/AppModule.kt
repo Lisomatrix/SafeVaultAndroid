@@ -1,6 +1,7 @@
 package pt.lisomatrix.safevault
 
 import android.content.Context
+import android.hardware.biometrics.BiometricPrompt
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,6 +11,8 @@ import pt.lisomatrix.safevault.crypto.AuthHandler
 import pt.lisomatrix.safevault.database.SafeVaultDatabase
 import pt.lisomatrix.safevault.database.dao.AccountDao
 import pt.lisomatrix.safevault.database.dao.VaultFileDao
+import java.util.*
+import javax.crypto.Cipher
 import javax.inject.Singleton
 
 @InstallIn(ApplicationComponent::class)

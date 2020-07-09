@@ -1,8 +1,10 @@
 package pt.lisomatrix.safevault.ui.home.options.myfiles
 
 import android.app.Activity
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import androidx.biometric.BiometricManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,15 +23,15 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kotlinx.android.synthetic.main.my_files_fragment.*
 import pt.lisomatrix.safevault.R
-import pt.lisomatrix.safevault.SafeVaultApplication.Companion.APPLICATION_NAME
+import pt.lisomatrix.safevault.crypto.CryptoProvider
 import pt.lisomatrix.safevault.databinding.MyFilesFragmentBinding
 import pt.lisomatrix.safevault.model.VaultFile
 import pt.lisomatrix.safevault.other.MainClickListener
 import pt.lisomatrix.safevault.other.SearchListener
 import pt.lisomatrix.safevault.other.SelectedListener
+import pt.lisomatrix.safevault.ui.auth.AuthActivity
 import pt.lisomatrix.safevault.ui.component.SelectComponent.SelectedFragment
 import pt.lisomatrix.safevault.ui.component.search.SearchToolbarFragment
-import pt.lisomatrix.safevault.ui.home.HomeActivity.Companion.IS_FILE_BEING_SELECTED
 import pt.lisomatrix.safevault.ui.home.options.myfiles.adapter.MyFilesAdapter
 import java.util.concurrent.TimeUnit
 
@@ -73,7 +75,6 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
         binding = DataBindingUtil.inflate(inflater, R.layout.my_files_fragment, container, false)
 
         // Initialize list object dependencies
-        //viewManager = CustomLinearLayoutManager(requireContext())
         viewManager = LinearLayoutManager(requireContext())
         viewAdapter = MyFilesAdapter(ArrayList(), this)
 
@@ -110,6 +111,24 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
         onSearchChanged()
 
         return binding.root
+    }
+
+    /**
+     * Show auth activity in order to auth the [CryptoObject]
+     * in case the device has any auth method
+     */
+    private fun requireKeyAuth(id: Long) {
+        val keyguardManager = requireContext().applicationContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+
+        val canAuth = BiometricManager
+            .from(requireContext().applicationContext)
+            .canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS
+
+        if (keyguardManager.isDeviceSecure && canAuth) {
+            val intent = Intent(requireContext().applicationContext, AuthActivity::class.java)
+            intent.putExtra(AuthActivity.REQUIRE_CRYPTO, id)
+            startActivityForResult(intent, 2)
+        }
     }
 
     private fun disposeStreams() {
@@ -277,8 +296,19 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
             }
         } else if (requestCode == READ_REQUEST_CODE + 1 && resultCode == Activity.RESULT_OK) {
             resultData?.data?.also { uri ->
-                viewModel.decryptFile(selectedItemId, uri)
-                selectedItemId = -1
+                // This a little messy
+                // So I create a CryptoObject and request auth on it
+                // Then on the worker I get the CryptoObject
+                viewModel.getVaultFileById(selectedItemId)
+                    .doOnError{ error -> error.printStackTrace() }
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { file ->
+                    CryptoProvider.createCryptoObject(file, false)
+                    requireKeyAuth(selectedItemId)
+                    viewModel.decryptFile(selectedItemId, uri)
+                    selectedItemId = -1
+                }
             }
         }
     }
