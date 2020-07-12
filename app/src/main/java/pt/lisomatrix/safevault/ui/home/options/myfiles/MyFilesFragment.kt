@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -265,11 +266,28 @@ class MyFilesFragment : Fragment(), MainClickListener, SearchListener, SelectedL
     }
 
     override fun onDelete() {
-        viewModel.deleteVaultFiles(viewAdapter.selectedIds.toLongArray())
-        viewAdapter.cancelSelectMode()
+        AlertDialog.Builder(requireContext()) // set message, title, and icon
+            .setTitle("Delete")
+            .setMessage("Are you sure you want to delete these files?")
+            .setIcon(R.drawable.baseline_delete_black_18dp)
+            .setPositiveButton("Delete"
+            ) { dialog, _ -> //your deleting code
+                viewModel.deleteVaultFiles(viewAdapter.selectedIds.toLongArray())
+                viewAdapter.cancelSelectMode()
 
-        // Reset search
-        searchTextChanged("")
+                // Reset search
+                searchTextChanged("")
+                dialog.dismiss()
+            }
+            .setNegativeButton("cancel"
+            ) { dialog, _ ->
+                viewAdapter.cancelSelectMode()
+                // Reset search
+                searchTextChanged("")
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 
     override fun selectedItemsSize(): LiveData<Int> {

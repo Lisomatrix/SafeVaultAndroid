@@ -32,15 +32,20 @@ class MainActivity : AppCompatActivity() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val descriptionText = "SafeVault Encrypt/Decrypt Progress"
+            val descriptionText = "SafeVault Encrypt"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("ENCRYPT_CHANNEL", "ENCRYPT_CHANNEL", importance).apply {
+            val encryptChannel = NotificationChannel("ENCRYPT_CHANNEL", "ENCRYPT_CHANNEL", importance).apply {
+                description = descriptionText
+            }
+
+            val decryptChannel = NotificationChannel("DECRYPT_CHANNEL", "DECRYPT_CHANNEL", importance).apply {
                 description = descriptionText
             }
             // Register the channel with the system
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(encryptChannel)
+            notificationManager.createNotificationChannel(decryptChannel)
         }
     }
 }

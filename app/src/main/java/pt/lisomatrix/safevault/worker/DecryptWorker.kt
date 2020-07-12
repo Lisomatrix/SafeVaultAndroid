@@ -37,10 +37,11 @@ class DecryptWorker @WorkerInject constructor(
     ) : Worker(context, workerParameters) {
 
     // My ears bleed because I forgot to prevent it from making sound at every change
-    private val builder = NotificationCompat.Builder(context, "ENCRYPT_CHANNEL")
+    private val builder = NotificationCompat.Builder(context, "DECRYPT_CHANNEL")
         .setOngoing(true)
         .setSmallIcon(R.drawable.logo)
         .setContentTitle("SafeVault Working")
+        .setContentText("File is being decrypted")
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .setOnlyAlertOnce(true)
 
@@ -95,6 +96,7 @@ class DecryptWorker @WorkerInject constructor(
 
             builder
                 .setContentTitle("${vaultFile.name} decrypted")
+                .setContentText("File decrypted")
                 .setProgress(0, 0, false)
                 .setTimeoutAfter(10000)
                 .setAutoCancel(true)
@@ -116,7 +118,7 @@ class DecryptWorker @WorkerInject constructor(
     ) {
 
         // Initialize cipher
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        //val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         // Set the IV used to encrypt file
         //val spec = IvParameterSpec(ivBytes) this is for CBC
         val spec = GCMParameterSpec(128, ivBytes) // this is for GCM
@@ -148,7 +150,8 @@ class DecryptWorker @WorkerInject constructor(
 
             // Only update if the progress turns from 9 to 10 and not 9.00001 to 9.00002
             // Have to limit the update frequency or android might drop some notifications
-           if (newProgress != progress && newProgress - progress > 2) {
+           if (newProgress != progress && newProgress - progress > 5) {
+               Log.d("PROGRESS", newProgress.toString())
                 // Update notification
                 with (NotificationManagerCompat.from(context)) {
                     builder.setProgress(100, newProgress, false)
